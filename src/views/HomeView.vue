@@ -53,7 +53,7 @@ export default {
     loginClick() {
       this.$router.push("login");
     },
-    logoutCilck() {
+    logoutClick() {
       this.$store.commit("updataUserInfo", {});
       this.$router.push("/login");
     },
@@ -134,7 +134,7 @@ export default {
                 <el-dropdown-menu>
                   <el-dropdown-item>基本资料</el-dropdown-item>
                   <el-dropdown-item>修改密码</el-dropdown-item>
-                  <el-dropdown-item divided @click="logoutCilck"
+                  <el-dropdown-item divided @click="logoutClick"
                     >退出登录</el-dropdown-item
                   >
                 </el-dropdown-menu>
