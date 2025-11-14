@@ -1,56 +1,52 @@
-<script>
-import { computed, onMounted } from "vue";
+<script setup>
+import { ref } from "vue";
 import md5 from "md5";
 import { ElMessage } from "element-plus";
 import { ElLoading } from "element-plus";
 import { loginFn } from "../api/user";
-import { mapMutations } from "vuex";
-export default {
-  data() {
-    return {
-      formData: {
-        userAccount: "",
-        password: "",
-      },
-    };
-  },
-  methods: {
-    ...mapMutations(['updataUserInfo']),
-    async loginSubmitClick() {
-      // console.log(this.formData);
-      //    加载中
-      // const loading = ElLoading.service({
-      //   lock: true,
-      //   text: "数据加载中。。。",
-      //   background: "rgba(0, 0, 0, 0.3)",
-      // });
-      // setTimeout(() => {
-      //   loading.close();
-      // }, 2000);
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 
-      // if (this.formData.userAccount.length < 5) {
-      //   ElMessage.error("账号不得小于5位");
-      //   return;
-      // }
-      // if (!/^[A-Za-z0-9]{6,}$/.test(this.formData.password)) {
-      //   ElMessage.error("密码不正确");
-      //   return;
-      // }
+const store = useStore();
+const router = useRouter();
 
-      // md5加密
-      // console.log(md5("@#$%^" + this.formData.password + ")(*&^)"));
-      const res = await loginFn(this.formData);
-      console.log(res.data);
-      if (res.data.code == 0) {
-        this.updataUserInfo(res.data.data)
-        ElMessage.success("登陆成功");
-        this.$router.push("/");
-      } else {
-        ElMessage.error(res.data.description);
-      }
-    },
-  },
-  computed: {},
+const formData = ref({
+  userAccount: "",
+  password: "",
+});
+
+const loginSubmitClick = async () => {
+  // console.log(formData.value);
+  //    加载中
+  // const loading = ElLoading.service({
+  //   lock: true,
+  //   text: "数据加载中。。。",
+  //   background: "rgba(0, 0, 0, 0.3)",
+  // });
+  // setTimeout(() => {
+  //   loading.close();
+  // }, 2000);
+
+  // if (formData.value.userAccount.length < 5) {
+  //   ElMessage.error("账号不得小于5位");
+  //   return;
+  // }
+  // if (!/^[A-Za-z0-9]{6,}$/.test(formData.value.password)) {
+  //   ElMessage.error("密码不正确");
+  //   return;
+  // }
+
+  // md5加密
+  // console.log(md5("@#$%^" + formData.value.password + ")(*&^)"));
+  const res = await loginFn(formData.value);
+  console.log(res.data);
+  if (res.data.code == 0) {
+    store.commit('updataUserInfo', res.data.data)
+    ElMessage.success("登陆成功");
+    router.push("/");
+  } else {
+    ElMessage.error(res.data.description);
+  }
 };
 </script>
 
@@ -82,7 +78,7 @@ export default {
     </div>
   </div>
 </template>
-<style lang="scss"scoped>
+<style lang="scss" scoped>
 html,
 body,
 #app {
@@ -98,6 +94,7 @@ body {
 }
 .login-right img {
   width: 100%;
+  height: auto;
   height: auto;
 }
 .login-form {

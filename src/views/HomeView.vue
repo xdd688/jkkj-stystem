@@ -1,6 +1,7 @@
-<script>
+<script setup>
 import AsideCom from "../components/AsideCom.vue";
 import ColorCom from "../components/ColorCom.vue";
+import TabCom from "../components/TabCom.vue";
 import {
   Fold,
   Expand,
@@ -13,77 +14,73 @@ import {
   Bell,
   ArrowDown,
 } from "@element-plus/icons-vue";
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useStore } from "vuex";
 
-export default {
-  name: "App",
-  components: {
-    AsideCom,
-    ColorCom,
-    Fold,
-    Expand,
-    Orange,
-    Tickets,
-    MoreFilled,
-    Rank,
-    RefreshRight,
-    HelpFilled,
-    Bell,
-    ArrowDown,
-  },
-  data() {
-    return {
-      input: ref(""),
-      collapse: false,
-      colorScheme: {
-        aside: "rgb(91, 150, 64)",
-        logo: "#4f89f3",
-        header: "rgb(209, 226, 220)",
-        note: "这是留言板",
-      },
-    };
-  },
-  mounted() {
-    this.initThemeColor();
-  },
-  methods: {
-    refreshPage() {
-      window.location.reload();
-    },
-    loginClick() {
-      this.$router.push("login");
-    },
-    logoutClick() {
-      this.$store.commit("updataUserInfo", {});
-      this.$router.push("/login");
-    },
-    openColorDrawer() {
-      this.$refs.colorCom.openDrawer();
-    },
-    handleColorChange(colorScheme) {
-      this.colorScheme = { ...colorScheme };
-      localStorage.setItem("themeColorScheme", JSON.stringify(colorScheme));
-    },
-    initThemeColor() {
-      const saved = localStorage.getItem("themeColorScheme");
-      if (saved) {
-        try {
-          this.colorScheme = JSON.parse(saved);
-        } catch (e) {
-          console.error("初始化主题色失败:", e);
-        }
-      }
-    },
-  },
-  computed: {
-    headerleft() {
-      return this.collapse ? "Expand" : "Fold";
-    },
-    userName() {
-      return this.$store.state.userInfo.userName;
-    },
-  },
+// 定义响应式数据
+const input = ref("");
+const collapse = ref(false);
+const colorCom = ref();
+
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+// 主题色方案
+const colorScheme = ref({
+  aside: "rgb(91, 150, 64)",
+  logo: "#4f89f3",
+  header: "rgb(209, 226, 220)",
+  note: "这是留言板",
+});
+
+const headerIcon = computed(() => {
+  return collapse.value ? Expand : Fold;
+});
+
+const userName = computed(() => {
+  return store.state.userInfo.userName;
+});
+
+// 方法定义
+const refreshPage = () => {
+  window.location.reload();
 };
+
+const loginClick = () => {
+  router.push("login");
+};
+
+const logoutClick = () => {
+  store.commit("updataUserInfo", {});
+  router.push("/login");
+};
+
+const openColorDrawer = () => {
+  colorCom.value.openDrawer();
+};
+
+const handleColorChange = (newColorScheme) => {
+  colorScheme.value = { ...newColorScheme };
+  localStorage.setItem("themeColorScheme", JSON.stringify(newColorScheme));
+};
+
+const initThemeColor = () => {
+  const saved = localStorage.getItem("themeColorScheme");
+  if (saved) {
+    try {
+      colorScheme.value = JSON.parse(saved);
+    } catch (e) {
+      console.error("初始化主题色失败:", e);
+    }
+  }
+};
+
+// 生命周期钩子
+onMounted(() => {
+  initThemeColor();
+});
 </script>
 
 <template>
@@ -103,12 +100,13 @@ export default {
       <el-container>
         <el-header :style="{ backgroundColor: colorScheme.header }">
           <div class="lefthead">
+            <!-- 确保 el-icon 正确包裹图标组件 -->
             <el-icon color="#fff" size="26" @click="collapse = !collapse">
-              <component :is="headerleft" />
+              <component :is="headerIcon" />
             </el-icon>
-            <el-icon color="#fff" size="20" @click="refreshPage"
-              ><HelpFilled
-            /></el-icon>
+            <el-icon color="#fff" size="20" @click="refreshPage">
+              <HelpFilled />
+            </el-icon>
             <el-icon color="#fff" size="20"><RefreshRight /></el-icon>
             <el-input
               v-model="input"
@@ -117,11 +115,15 @@ export default {
             ></el-input>
           </div>
           <div class="righthead">
-            <el-icon color="#fff" size="20"><Bell /></el-icon>
-            <el-icon color="#fff" size="20" @click="openColorDrawer"
-              ><Orange
-            /></el-icon>
-            <el-icon color="#fff" size="20" @click=""><Tickets /></el-icon>
+            <el-icon color="#fff" size="20" @click="">
+              <Bell />
+            </el-icon>
+            <el-icon color="#fff" size="20" @click="openColorDrawer">
+              <Orange />
+            </el-icon>
+            <el-icon color="#fff" size="20" @click="">
+              <Tickets />
+            </el-icon>
             <el-icon color="#fff" size="20"><Rank /></el-icon>
             <el-dropdown v-if="userName">
               <span class="el-dropdown-link">
@@ -134,9 +136,9 @@ export default {
                 <el-dropdown-menu>
                   <el-dropdown-item>基本资料</el-dropdown-item>
                   <el-dropdown-item>修改密码</el-dropdown-item>
-                  <el-dropdown-item divided @click="logoutClick"
-                    >退出登录</el-dropdown-item
-                  >
+                  <el-dropdown-item divided @click="logoutClick">
+                    退出登录
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -146,8 +148,10 @@ export default {
         </el-header>
 
         <el-main>
-          <!-- 二级路由出口 -->
+          <!-- 标签页组件 -->
+          <TabCom />
 
+          <!-- 二级路由出口 -->
           <router-view></router-view>
         </el-main>
       </el-container>
@@ -209,7 +213,7 @@ body,
 }
 
 .el-main {
-  background-color: #ccc;
+  background-color: #fff;
   padding: 0 !important;
 }
 
