@@ -1,5 +1,6 @@
 import axios from "axios";
 import store from "@/store";
+import { ElLoading } from "element-plus";
 // 开发环境           生产环境          测试环境
 // development      production       production
 // npm run dev      npm run build    npm run build
@@ -8,37 +9,46 @@ const request = axios.create({
   baseURL: "http://192.168.1.110:8081",
   timeout: 60000,
 });
-// let loading = null;
-// 添加请求拦截器
-request.interceptors.request.use(function (config) {
-    console.log(store);
-    
-    return config;
-}, function (error) {
-    // 对请求错误做些什么
-    return Promise.reject(error);
-});
 
-// 添加响应拦截器
-request.interceptors.response.use(function (response) {
-    // 2xx 范围内的状态码都会触发该函数。
+let loading = null;
+// 请求拦截器
+request.interceptors.request.use(
+
+  function (config) { 
+    // 加载动画
+      loading = ElLoading.service({
+      lock: true,
+      text: "数据加载中。。。",
+      background: "rgba(0, 0, 0, 0.3)",
+    });
+    // 请求携带token
+    config.headers.Authorization=store.state.userInfo.token;
+    return config;
+  },
+  function (error) {
+    // 对请求错误做些什么
+
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+request.interceptors.response.use(
+
+  function (response) {
     // 对响应数据做点什么
+    loading.close();
     return response;
-}, function (error) {
+  },
+  function (error) {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
     return Promise.reject(error);
-});
-
-
+  }
+);
 
 function ajax(config) {
-  //   const loading = ElLoading.service({
-  //     lock: true,
-  //     text: "数据加载中。。。",
-  //     background: "rgba(0, 0, 0, 0.3)",
-  //   });
-  //   loading.close();
+  
 
   const { url = "", method = "GEt", data = {}, headers = {} } = config;
   switch (method.toUpperCase()) {
